@@ -1,0 +1,8 @@
+{
+  "name": "color-test-web",
+  "version": "1.0.0",
+  "description": "AI Personal Color Test",
+  "dependencies": {
+    "crypto-js": "^4.2.0"
+  }
+}

@@ -1,4 +1,5 @@
 import { HmacSHA256 } from 'crypto-js';
+const { getCompleteSeasonData } = require('./color-data.js');
 
 // 豆包API配置
 const DOUBao_API_URL = 'https://aquasearch.volcengineapi.com/api/v3/chat/completions';
@@ -246,8 +247,26 @@ export default async function handler(request) {
         {"name": "夸张亮色", "desc": "太鲜艳的颜色会显得突兀，和你的气质不符"}
       ];
       
-      // 打印解析后的结果
-      console.log('解析后的分析结果:', result);
+      // 用我们的标准数据库补充完整字段，确保没有缺失
+      const completeData = getCompleteSeasonData(result.type, result.subtype);
+      
+      // 合并AI返回的结果和我们的标准数据
+      result = {
+        ...completeData,
+        ...result, // AI返回的字段优先
+        // 确保数组字段不会为空
+        basicColors: result.basicColors || completeData.basicColors,
+        brightColors: result.brightColors || completeData.brightColors,
+        accentColors: result.accentColors || completeData.accentColors,
+        occasionColors: result.occasionColors || completeData.occasionColors,
+        matchingIdeas: result.matchingIdeas || completeData.matchingIdeas,
+        bestHairColors: result.bestHairColors || completeData.bestHairColors,
+        okHairColors: result.okHairColors || completeData.okHairColors,
+        avoidHairColors: result.avoidHairColors || completeData.avoidHairColors
+      };
+      
+      // 打印最终的完整结果
+      console.log('最终完整分析结果:', result);
       
     } catch (parseError) {
       console.error('JSON解析失败，原始响应:', aiResponse);
@@ -316,5 +335,9 @@ function getMockResult() {
       ]
     }
   ];
-  return seasons[Math.floor(Math.random() * seasons.length)];
+  
+  const result = seasons[Math.floor(Math.random() * seasons.length)];
+  // 补充完整字段
+  const completeData = getCompleteSeasonData(result.type, result.subtype);
+  return { ...completeData, ...result };
 }
